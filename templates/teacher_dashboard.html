@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Profesor</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .logout-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold; }
+        h1, h2, h3 { color: #2c3e50; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        
+        /* Alertas flash */
+        .alert-success { background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold; }
+
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #ecf0f1; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        form div { display: flex; flex-direction: column; }
+        form div.full-width { grid-column: span 2; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        button.save-btn { grid-column: span 2; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.save-btn:hover { background: #219653; }
+        .chair-section { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f9f9f9; padding: 8px 12px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid #2980b9; display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { background: #c0392b; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .delete-btn:hover { background: #962d22; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; width: 100%; }
+            form { grid-template-columns: 1fr; }
+            form div.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👨‍🏫 Panel del Profesor {% if is_superuser %}(Superusuario)⭐{% endif %}</h1>
+        <div>
+            <span>Prof. <strong>{{ username }}</strong></span> | 
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Mensajes de Alerta -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'success' %}
+            <div class="alert-success">✅ {{ message }}</div>
+          {% else %}
+            <div class="alert-error">⚠️ {{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>Asignar Canción o Tarea a un Alumno</h2>
+    <form action="/assign_song" method="POST" enctype="multipart/form-data">
+        <div>
+            <label>Seleccionar Alumno:</label>
+            <select name="student_id" required>
+                <option value="">-- Elige un alumno --</option>
+                {% for chair, students in chairs.items() %}
+                    {% for student in students %}
+                    <option value="{{ student[0] }}">{{ student[1] }} (Cátedra: {{ chair }})</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Título de la canción:</label>
+            <input type="text" name="title" required>
+        </div>
+        <div>
+            <label>Artista / Banda:</label>
+            <input type="text" name="artist" required>
+        </div>
+        <div>
+            <label>Instrumento:</label>
+            <input type="text" name="instrument" required>
+        </div>
+        <div>
+            <label>Enlace web (Opcional):</label>
+            <input type="text" name="link" placeholder="https://...">
+        </div>
+        <div>
+            <label>Adjuntar Partitura (PDF o Imagen):</label>
+            <input type="file" name="score_file" accept=".pdf,.png,.jpg,.jpeg">
+        </div>
+        <div class="full-width">
+            <label>Notas o Instrucciones del Profesor:</label>
+            <textarea name="notes" rows="2" placeholder="Ej. Practicar arpegios a 80 BPM..."></textarea>
+        </div>
+        <button type="submit" class="save-btn">Enviar Asignación</button>
+    </form>
+
+    {% if is_superuser %}
+    <h2>⚡ Gestión de Profesores (Superusuario)</h2>
+    <div class="chair-section">
+        <ul>
+            {% for t in teachers %}
+            <li>
+                <span>👨‍🏫 {{ t[1] }} {% if t[0] == 1 %}(Superusuario Principal)⭐{% endif %}</span>
+                {% if t[0] != 1 %}
+                <form action="/delete_teacher/{{ t[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                    <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar a este profesor?');">Eliminar</button>
+                </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <h2>Alumnos Organizados por Cátedras</h2>
+    {% if chairs %}
+        {% for chair, students in chairs.items() %}
+        <div class="chair-section">
+            <h3>🎵 Cátedra: {{ chair }}</h3>
+            <ul>
+                {% for student in students %}
+                <li><span>👤 {{ student[1] }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay alumnos registrados todavía.</p>
+    {% endif %}
+</div>
+</body>
+</html>

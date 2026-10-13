@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Repertorio Musical</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logout-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .logout-btn:hover { background: #c0392b; }
+        h1, h2 { color: #2c3e50; margin: 0; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #ecf0f1; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        form div { display: flex; flex-direction: column; }
+        form div.full-width { grid-column: span 2; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button.save-btn { grid-column: span 2; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.save-btn:hover { background: #219653; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        a.link-recurso { color: #2980b9; text-decoration: none; }
+        a.link-recurso:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎸 Repertorio Musical</h1>
+        <div>
+            <span>Hola, <strong>{{ username }}</strong></span> | 
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <h2>Agregar Nueva Canción</h2>
+    <form action="/add_song" method="POST">
+        <div>
+            <label>Título de la canción:</label>
+            <input type="text" name="title" required>
+        </div>
+        <div>
+            <label>Artista / Banda:</label>
+            <input type="text" name="artist_name" placeholder="Ej. Radiohead, The Beatles..." required>
+        </div>
+        <div>
+            <label>Instrumento:</label>
+            <input type="text" name="instrument" placeholder="Ej. Bajo eléctrico, Piano..." required>
+        </div>
+        <div>
+            <label>Tonalidad (ej. Do menor):</label>
+            <input type="text" name="key_signature">
+        </div>
+        <div>
+            <label>Tempo (BPM):</label>
+            <input type="number" name="tempo">
+        </div>
+        <div>
+            <label>Estado:</label>
+            <select name="status">
+                <option value="Por aprender">Por aprender</option>
+                <option value="En práctica">En práctica</option>
+                <option value="Dominado">Dominado</option>
+            </select>
+        </div>
+        <div class="full-width">
+            <label>Enlace a Partitura / Tablatura:</label>
+            <input type="text" name="link" placeholder="https://...">
+        </div>
+        <button type="submit" class="save-btn">Guardar Canción</button>
+    </form>
+
+    <h2>Repertorio Actual</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Artista</th>
+                <th>Instrumento</th>
+                <th>Tonalidad</th>
+                <th>Tempo</th>
+                <th>Estado</th>
+                <th>Enlace</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for song in songs %}
+            <tr>
+                <td>{{ song[1] }}</td>
+                <td>{{ song[2] }}</td>
+                <td>{{ song[3] }}</td>
+                <td>{{ song[4] }}</td>
+                <td>{{ song[5] }}</td>
+                <td><strong>{{ song[6] }}</strong></td>
+                <td>
+                    {% if song[7] %}
+                    <a href="{{ song[7] }}" target="_blank" class="link-recurso">Ver enlace</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center;">No hay canciones registradas todavía.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

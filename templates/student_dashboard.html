@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Repertorio y Asignaciones</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .logout-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold; }
+        h1, h2 { color: #2c3e50; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        
+        .alert-success { background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold; }
+
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #ecf0f1; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        form div { display: flex; flex-direction: column; }
+        form div.full-width { grid-column: span 2; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        button.save-btn { grid-column: span 2; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.save-btn:hover { background: #219653; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 30px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .assignment-card { background: #fff8e1; border-left: 5px solid #f39c12; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        a.btn-resource { display: inline-block; background: #2980b9; color: white; padding: 4px 8px; text-decoration: none; border-radius: 3px; font-size: 12px; margin-right: 5px; margin-bottom: 4px; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; width: 100%; }
+            form { grid-template-columns: 1fr; }
+            form div.full-width { grid-column: span 1; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎸 Panel del Alumno</h1>
+        <div>
+            <span>Hola, <strong>{{ username }}</strong></span> | 
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Mensajes de Alerta -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'success' %}
+            <div class="alert-success">✅ {{ message }}</div>
+          {% else %}
+            <div class="alert-error">⚠️ {{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>📌 Canciones Pendientes Asignadas por el Profesor</h2>
+    {% if assignments %}
+        {% for a in assignments %}
+        <div class="assignment-card">
+            <p><strong>Profesor:</strong> {{ a[6] }}</p>
+            <p><strong>Canción:</strong> {{ a[1] }} - {{ a[2] }} ({{ a[3] }})</p>
+            <p><strong>Instrucciones:</strong> {{ a[4] }}</p>
+            <p>
+                <strong>Recursos:</strong><br>
+                {% if a[7] %}
+                <a href="{{ a[7] }}" target="_blank" class="btn-resource">🔗 Enlace web</a>
+                {% endif %}
+                {% if a[8] %}
+                <a href="{{ url_for('static', filename='uploads/' + a[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
+                {% endif %}
+                {% if not a[7] and not a[8] %}
+                <span>Sin recursos adjuntos.</span>
+                {% endif %}
+            </p>
+            <p><strong>Estado:</strong> <em>{{ a[5] }}</em></p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No tienes tareas pendientes asignadas por ningún profesor.</p>
+    {% endif %}
+
+    <h2>Agregar Canción a mi Repertorio Personal</h2>
+    <form action="/add_song" method="POST" enctype="multipart/form-data">
+        <div>
+            <label>Título de la canción:</label>
+            <input type="text" name="title" required>
+        </div>
+        <div>
+            <label>Artista / Banda:</label>
+            <input type="text" name="artist_name" required>
+        </div>
+        <div>
+            <label>Instrumento:</label>
+            <input type="text" name="instrument" required>
+        </div>
+        <div>
+            <label>Tonalidad:</label>
+            <input type="text" name="key_signature">
+        </div>
+        <div>
+            <label>Tempo (BPM):</label>
+            <input type="number" name="tempo">
+        </div>
+        <div>
+            <label>Estado:</label>
+            <select name="status">
+                <option value="Por aprender">Por aprender</option>
+                <option value="En práctica">En práctica</option>
+                <option value="Dominado">Dominado</option>
+            </select>
+        </div>
+        <div>
+            <label>Enlace de referencia:</label>
+            <input type="text" name="link" placeholder="https://...">
+        </div>
+        <div>
+            <label>Adjuntar Partitura (PDF o Imagen):</label>
+            <input type="file" name="score_file" accept=".pdf,.png,.jpg,.jpeg">
+        </div>
+        <button type="submit" class="save-btn">Guardar en mi Repertorio</button>
+    </form>
+
+    <h2>Mi Repertorio Actual</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Artista</th>
+                <th>Instrumento</th>
+                <th>Tonalidad</th>
+                <th>Tempo</th>
+                <th>Estado</th>
+                <th>Recursos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for song in songs %}
+            <tr>
+                <td>{{ song[1] }}</td>
+                <td>{{ song[2] }}</td>
+                <td>{{ song[3] }}</td>
+                <td>{{ song[4] }}</td>
+                <td>{{ song[5] }}</td>
+                <td><strong>{{ song[6] }}</strong></td>
+                <td>
+                    {% if song[7] %}
+                    <a href="{{ song[7] }}" target="_blank" class="btn-resource">🔗 Enlace</a>
+                    {% endif %}
+                    {% if song[8] %}
+                    <a href="{{ url_for('static', filename='uploads/' + song[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
+                    {% endif %}
+                    {% if not song[7] and not song[8] %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center;">No hay canciones en tu repertorio todavía.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
