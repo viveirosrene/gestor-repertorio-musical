@@ -3,39 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Gestor Musical</title>
+    <title>Iniciar Sesión - Academia Musical</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
-        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 320px; box-sizing: border-box; }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
-        label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #219653; }
-        .msg { color: #e74c3c; font-size: 13px; text-align: center; margin-bottom: 10px; }
-        .link { text-align: center; margin-top: 15px; font-size: 14px; }
-        .link a { color: #2980b9; text-decoration: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 380px; box-sizing: border-box; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .alert-success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: #333; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { width: 100%; background: #2980b9; color: white; border: none; padding: 10px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1f618d; }
+        .links { text-align: center; margin-top: 15px; font-size: 13px; }
+        .links a { color: #2980b9; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>Iniciar Sesión</h2>
+<div class="login-card">
+    <h2>🎵 Iniciar Sesión</h2>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="msg">{{ message }}</div>
+          {% if category == 'success' %}
+            <div class="alert-success">✅ {{ message }}</div>
+          {% else %}
+            <div class="alert-error">⚠️ {{ message }}</div>
+          {% endif %}
         {% endfor %}
       {% endif %}
     {% endwith %}
-    <form method="POST">
-        <label>Usuario:</label>
-        <input type="text" name="username" required>
+
+    <form action="/login" method="POST">
+        <label>Cédula de Identidad:</label>
+        <input type="text" name="cedula" required placeholder="Ej. 28123456">
+
         <label>Contraseña:</label>
-        <input type="password" name="password" required>
+        <input type="password" name="password" required placeholder="••••••••">
+
         <button type="submit">Entrar</button>
     </form>
-    <div class="link">
-        ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
+    
+    <div class="links">
+        <p><a href="/recover">¿Olvidaste tu contraseña?</a></p>
+        <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
     </div>
 </div>
 </body>

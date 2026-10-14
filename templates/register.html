@@ -3,63 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Gestor Musical</title>
+    <title>Registro - Academia Musical</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
-        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 340px; box-sizing: border-box; }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
-        label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; background: #2980b9; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #2471a3; }
-        .msg { color: #e74c3c; font-size: 13px; text-align: center; margin-bottom: 10px; }
-        .link { text-align: center; margin-top: 15px; font-size: 14px; }
-        .link a { color: #2980b9; text-decoration: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .register-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: #333; }
+        input, select { width: 100%; padding: 9px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { width: 100%; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #219653; }
+        .links { text-align: center; margin-top: 15px; font-size: 13px; }
+        .links a { color: #2980b9; text-decoration: none; }
     </style>
     <script>
         function toggleChair() {
             var role = document.getElementById("roleSelect").value;
             var chairDiv = document.getElementById("chairDiv");
-            if (role === "alumno") {
-                chairDiv.style.display = "block";
-            } else {
-                chairDiv.style.display = "none";
-            }
+            chairDiv.style.display = (role === "alumno") ? "block" : "none";
         }
     </script>
 </head>
 <body>
-<div class="card">
-    <h2>Crear Cuenta</h2>
+<div class="register-card">
+    <h2>📝 Registro de Usuario</h2>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="msg">{{ message }}</div>
+          {% if category == 'error' %}
+            <div class="alert-error">⚠️ {{ message }}</div>
+          {% endif %}
         {% endfor %}
       {% endif %}
     {% endwith %}
-    <form method="POST">
-        <label>Usuario:</label>
-        <input type="text" name="username" required>
+
+    <form action="/register" method="POST">
+        <label>Cédula de Identidad:</label>
+        <input type="text" name="cedula" required placeholder="Ej. 28123456">
+<label>Cédula de Identidad:</label>
+<input type="text" name="cedula" pattern="[0-9]{6,9}" title="Ingresa un número de cédula válido (solo números, entre 6 y 9 dígitos)" required placeholder="Ej. 28123456">
         
+        <label>Nombre y Apellido:</label>
+        <input type="text" name="username" required placeholder="Tu nombre completo">
+
         <label>Contraseña:</label>
-        <input type="password" name="password" required>
-        
+        <input type="password" name="password" required placeholder="••••••••">
+
         <label>Rol:</label>
         <select name="role" id="roleSelect" onchange="toggleChair()" required>
             <option value="alumno">Alumno</option>
             <option value="profesor">Profesor</option>
         </select>
-        
+
         <div id="chairDiv">
-            <label>Cátedra / Instrumento:</label>
-            <input type="text" name="chair" placeholder="Ej. Piano, Bajo eléctrico...">
+            <label>Cátedra / Instrumento principal:</label>
+            <input type="text" name="chair" placeholder="Ej. Piano, Bajo Eléctrico...">
         </div>
-        
+
+        <label>Pregunta de seguridad (para recuperar clave):</label>
+        <input type="text" name="security_question" required placeholder="Ej. ¿Nombre de tu primera mascota?">
+
+        <label>Respuesta secreta:</label>
+        <input type="text" name="security_answer" required placeholder="Tu respuesta">
+
         <button type="submit">Registrarse</button>
     </form>
-    <div class="link">
-        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+    
+    <div class="links">
+        <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
     </div>
 </div>
 </body>

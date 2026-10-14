@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 380px; box-sizing: border-box; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; font-size: 20px; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: #333; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { width: 100%; background: #f39c12; color: white; border: none; padding: 10px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #d68910; }
+        .links { text-align: center; margin-top: 15px; font-size: 13px; }
+        .links a { color: #2980b9; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🔑 Recuperar Contraseña</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert-error">⚠️ {{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/recover" method="POST">
+        {% if step == 1 %}
+            <input type="hidden" name="step" value="1">
+            <label>Ingresa tu Cédula:</label>
+            <input type="text" name="cedula" required placeholder="Ej. 28123456">
+            <button type="submit">Siguiente</button>
+        {% else %}
+            <input type="hidden" name="step" value="2">
+            <input type="hidden" name="cedula" value="{{ cedula }}">
+            <p><strong>Pregunta de seguridad:</strong><br>{{ question }}</p>
+            <label>Tu Respuesta:</label>
+            <input type="text" name="security_answer" required placeholder="Respuesta secreta">
+            <label>Nueva Contraseña:</label>
+            <input type="password" name="new_password" required placeholder="Nueva contraseña">
+            <button type="submit">Restablecer Contraseña</button>
+        {% endif %}
+    </form>
+    
+    <div class="links">
+        <p><a href="/login">Volver al inicio de sesión</a></p>
+    </div>
+</div>
+</body>
+</html>

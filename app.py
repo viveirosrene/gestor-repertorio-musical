@@ -3,134 +3,171 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 import crud
 import database
-
+import crud
 app = Flask(__name__)
-app.secret_key = "clave_secreta_super_segura"
+app.secret_key = "clave_secreta_gestor_musica"
 
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
-ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+UPLOAD_FOLDER = os.path.join("static", "uploads")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except OSError:
+    pass
 
 database.init_db()
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        
-        if crud.verify_user(username, password):
-            user_data = crud.get_user_by_username(username)
-            session["user_id"] = user_data["id"]
-            session["username"] = user_data["username"]
-            session["role"] = user_data["role"]
-            return redirect(url_for("index"))
-        else:
-            flash("Usuario o contraseña incorrectos", "error")
-            
-    return render_template("login.html")
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        role = request.form.get("role")
-        chair = request.form.get("chair") if role == "alumno" else None
-        
-        if crud.create_user(username, password, role, chair):
-            flash("¡Registro exitoso! Inicia sesión.", "success")
-            return redirect(url_for("login"))
-        else:
-            flash("El nombre de usuario ya existe.", "error")
-            
-    return render_template("register.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
 
 @app.route("/")
 def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
-        
-    role = session["role"]
-    user_id = session["user_id"]
-    
-    if role == "profesor":
-        students = crud.get_all_students()
-        teachers = crud.get_all_teachers()
-        chairs_dict = {}
-        for s in students:
-            chair_name = s[2] or "General"
-            if chair_name not in chairs_dict:
-                chairs_dict[chair_name] = []
-            chairs_dict[chair_name].append(s)
-            
-        # El primer profesor registrado (ID 1) es el superusuario
-        is_superuser = (user_id == 1)
-        
-        return render_template("teacher_dashboard.html", 
-                               username=session["username"], 
-                               user_id=user_id,
-                               chairs=chairs_dict, 
-                               teachers=teachers, 
-                               is_superuser=is_superuser)
-    else:
-        songs = crud.list_songs_by_user(user_id)
-        assignments = crud.get_student_assignments(user_id)
-        return render_template("student_dashboard.html", username=session["username"], songs=songs, assignments=assignments)
 
-@app.route("/delete_teacher/<int:teacher_id>", methods=["POST"])
-def delete_teacher(teacher_id):
-    if "user_id" not in session or session["user_id"] != 1:
-        flash("Acceso denegado. Solo el superusuario principal puede eliminar profesores.", "error")
-        return redirect(url_for("index"))
-        
-    crud.delete_teacher(teacher_id)
-    flash("Profesor eliminado correctamente del sistema.", "success")
-    return redirect(url_for("index"))
+    role = session.get("role")
+    username = session.get("username")
+    cedula = session.get("cedula")
+    is_superuser = cedula in crud.SUPER_CEDULAS
+
+    if role == "alumno":
+        songs = crud.list_songs_by_user(session["user_id"])
+        assignments = crud.get_student_assignments(session["user_id"])
+        return render_template(
+            "student_dashboard.html",
+            username=username,
+            songs=songs,
+            assignments=assignments,
+            SUPER_CEDULAS=crud.SUPER_CEDULAS,
+        )
+
+    elif role == "profesor":
+        chairs = crud.get_students_by_chair()
+        teachers = crud.get_all_teachers() if is_superuser else []
+        pending_students = crud.get_pending_students() if is_superuser else []
+        assignments = crud.get_all_assignments()
+        return render_template(
+            "teacher_dashboard.html",
+            username=username,
+            chairs=chairs,
+            teachers=teachers,
+            pending_students=pending_students,
+            is_superuser=is_superuser,
+            SUPER_CEDULAS=crud.SUPER_CEDULAS,
+            assignments=assignments,
+        )
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        cedula = request.form.get("cedula", "").strip()
+        user = crud.get_user_by_cedula(cedula)
+
+        if user:
+            if user["status"] == 'pendiente':  # <-- Cambiado de user[4] a user["status"]
+                flash("Tu cuenta de estudiante está pendiente por aprobación del profesor.", "error")
+                return redirect(url_for("login"))
+
+            session["user_id"] = user["id"]         # <-- user["id"]
+            session["cedula"] = user["cedula"]       # <-- user["cedula"]
+            session["username"] = user["username"]   # <-- user["username"]
+            session["role"] = user["role"]           # <-- user["role"]
+
+            flash(f"¡Bienvenido, {user['username']}!", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Cédula no registrada. Por favor regístrate primero.", "error")
+
+    return render_template("login.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        cedula = request.form.get("cedula", "").strip()
+        username = request.form.get("username", "").strip()
+        role = request.form.get("role")
+        chair = request.form.get("chair", "").strip()
+
+        if crud.get_user_by_cedula(cedula):
+            flash("Esta cédula ya se encuentra registrada.", "error")
+            return redirect(url_for("register"))
+
+        if role == "alumno":
+            approved = 0
+            msg = "Registro exitoso. Tu cuenta debe ser aprobada por un profesor para poder ingresar."
+        else:
+            approved = 1
+            msg = "Profesor registrado exitosamente. Ya puedes iniciar sesión."
+
+        crud.create_user(cedula, username, role, approved, chair)
+        flash(msg, "success")
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
+
+
+@app.route("/recover", methods=["GET", "POST"])
+def recover():
+    if request.method == "POST":
+        cedula = request.form.get("cedula", "").strip()
+        new_username = request.form.get("new_username", "").strip()
+
+        user = crud.get_user_by_cedula(cedula)
+        if user:
+            crud.update_username_by_cedula(cedula, new_username)
+            flash("Nombre actualizado correctamente. Ya puedes ingresar.", "success")
+            return redirect(url_for("login"))
+        else:
+            flash("Cédula no encontrada en el sistema.", "error")
+
+    return render_template("recover.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Has cerrado sesión.", "success")
+    return redirect(url_for("login"))
+
 
 @app.route("/add_song", methods=["POST"])
 def add_song():
-    if "user_id" not in session or session["role"] != "alumno":
+    if "user_id" not in session:
         return redirect(url_for("login"))
-        
+
     title = request.form.get("title")
-    artist_name = request.form.get("artist_name")
+    artist = request.form.get("artist_name")
     instrument = request.form.get("instrument")
-    key_signature = request.form.get("key_signature")
+    key_sig = request.form.get("key_signature")
     tempo = request.form.get("tempo")
-    link = request.form.get("link")
     status = request.form.get("status")
+    link = request.form.get("link")
 
-    tempo = int(tempo) if tempo and tempo.isdigit() else None
+    score_file = request.files.get("score_file")
+    filename = None
+    if score_file and score_file.filename != "":
+        filename = secure_filename(score_file.filename)
+        score_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    file_filename = None
-    if 'score_file' in request.files:
-        file = request.files['score_file']
-        if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_filename = filename
-
-    crud.add_song(title, artist_name, instrument, key_signature, tempo, link, file_filename, status, session["user_id"])
-    flash("¡Canción guardada exitosamente en tu repertorio!", "success")
+    crud.add_song(
+        session["user_id"],
+        title,
+        artist,
+        instrument,
+        key_sig,
+        tempo,
+        status,
+        link,
+        filename,
+    )
+    flash("Canción agregada a tu repertorio.", "success")
     return redirect(url_for("index"))
+
 
 @app.route("/assign_song", methods=["POST"])
 def assign_song():
-    if "user_id" not in session or session["role"] != "profesor":
-        return redirect(url_for("login"))
-        
+    if "user_id" not in session or session.get("role") != "profesor":
+        flash("Acceso denegado.", "error")
+        return redirect(url_for("index"))
+
     student_id = request.form.get("student_id")
     title = request.form.get("title")
     artist = request.form.get("artist")
@@ -138,22 +175,81 @@ def assign_song():
     notes = request.form.get("notes")
     link = request.form.get("link")
 
-    file_filename = None
-    if 'score_file' in request.files:
-        file = request.files['score_file']
-        if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_filename = filename
+    score_file = request.files.get("score_file")
+    filename = None
+    if score_file and score_file.filename != "":
+        filename = secure_filename(score_file.filename)
+        score_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    if student_id:
-        crud.add_assignment(session["user_id"], int(student_id), title, artist, instrument, notes, link, file_filename)
-        flash("¡Asignación realizada y enviada al alumno correctamente!", "success")
-    else:
-        flash("Por favor selecciona un alumno válido.", "error")
-        
+    crud.create_assignment(
+        session["user_id"],
+        student_id,
+        title,
+        artist,
+        instrument,
+        notes,
+        link,
+        filename,
+    )
+    flash("Tarea asignada con éxito al alumno.", "success")
     return redirect(url_for("index"))
 
+
+@app.route("/delete_assignment/<int:assignment_id>", methods=["POST"])
+def delete_assignment(assignment_id):
+    if "user_id" not in session or session.get("role") != "profesor":
+        flash(
+            "Acceso denegado. Solo los profesores pueden eliminar asignaciones.",
+            "error",
+        )
+        return redirect(url_for("index"))
+
+    crud.delete_assignment(assignment_id)
+    flash("Asignación eliminada correctamente.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/approve_student/<int:user_id>", methods=["POST"])
+def approve_student(user_id):
+    if (
+        "user_id" not in session
+        or session.get("cedula") not in crud.SUPER_CEDULAS
+    ):
+        flash("Acceso denegado.", "error")
+        return redirect(url_for("index"))
+
+    crud.approve_user(user_id)
+    flash("Estudiante aprobado correctamente.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/delete_student/<int:user_id>", methods=["POST"])
+def delete_student(user_id):
+    if (
+        "user_id" not in session
+        or session.get("cedula") not in crud.SUPER_CEDULAS
+    ):
+        flash("Acceso denegado.", "error")
+        return redirect(url_for("index"))
+
+    crud.delete_user(user_id)
+    flash("Estudiante eliminado correctamente.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/delete_teacher/<int:user_id>", methods=["POST"])
+def delete_teacher(user_id):
+    if (
+        "user_id" not in session
+        or session.get("cedula") not in crud.SUPER_CEDULAS
+    ):
+        flash("Acceso denegado.", "error")
+        return redirect(url_for("index"))
+
+    crud.delete_user(user_id)
+    flash("Profesor eliminado correctamente.", "success")
+    return redirect(url_for("index"))
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5001))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -14,14 +14,18 @@ def init_db():
     );
     """)
 
-    # 2. Tabla de Usuarios (con rol: 'profesor' o 'alumno')
+    # 2. Tabla de Usuarios (con cédula única, rol, estado de aprobación y recuperación)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
+        cedula TEXT NOT NULL UNIQUE,
+        username TEXT NOT NULL,
         password TEXT NOT NULL,
         role TEXT CHECK(role IN ('profesor', 'alumno')) NOT NULL,
-        chair TEXT
+        chair TEXT,
+        status TEXT CHECK(status IN ('pendiente', 'aprobado')) DEFAULT 'aprobado',
+        security_question TEXT,
+        security_answer TEXT
     );
     """)
 
@@ -63,7 +67,7 @@ def init_db():
 
     conn.commit()
     conn.close()
-    print("¡Base de datos lista con soporte para superusuario!")
+    print("¡Base de datos actualizada con cédula, aprobaciones y recuperación!")
 
 if __name__ == "__main__":
     init_db()

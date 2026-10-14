@@ -9,9 +9,8 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .logout-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold; }
         h1, h2, h3 { color: #2c3e50; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
         
-        /* Alertas flash */
         .alert-success { background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; }
         .alert-error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold; }
 
@@ -20,13 +19,17 @@
         form div.full-width { grid-column: span 2; }
         label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
         input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        textarea { resize: vertical; height: 80px; }
         button.save-btn { grid-column: span 2; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button.save-btn:hover { background: #219653; }
-        .chair-section { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        ul { list-style-type: none; padding: 0; }
-        li { background: #f9f9f9; padding: 8px 12px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid #2980b9; display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background: #c0392b; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px; }
-        .delete-btn:hover { background: #962d22; }
+        
+        .chair-section { background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .chair-section ul { list-style: none; padding: 0; margin: 0; }
+        .chair-section li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
+        .chair-section li:last-child { border-bottom: none; }
+        
+        .delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .delete-btn:hover { background: #c0392b; }
 
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -39,14 +42,14 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>👨‍🏫 Panel del Profesor {% if is_superuser %}(Superusuario)⭐{% endif %}</h1>
+        <h1>🎼 Panel del Profesor / Administrador</h1>
         <div>
-            <span>Prof. <strong>{{ username }}</strong></span> | 
+            <span>Hola, <strong>{{ username }}</strong> {% if is_superuser %}(Superusuario ⭐){% endif %}</span> | 
             <a href="/logout" class="logout-btn">Cerrar Sesión</a>
         </div>
     </div>
 
-    <!-- Mensajes de Alerta -->
+    <!-- Alertas -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -59,54 +62,93 @@
       {% endif %}
     {% endwith %}
 
-    <h2>Asignar Canción o Tarea a un Alumno</h2>
+    {% if is_superuser and pending_students %}
+    <h2>⏳ Estudiantes Pendientes por Aprobar</h2>
+    <div class="chair-section" style="background: #fff8e1;">
+        <ul>
+            {% for ps in pending_students %}
+            <li>
+                <span>👤 <strong>{{ ps[2] }}</strong> (Cédula: {{ ps[1] }} - Cátedra: {{ ps[3] }})</span>
+                <form action="/approve_student/{{ ps[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                    <button type="submit" class="save-btn" style="padding: 4px 10px; font-size: 12px; background: #27ae60;">Aprobar</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <h2>📤 Asignar Tarea / Canción a un Alumno</h2>
     <form action="/assign_song" method="POST" enctype="multipart/form-data">
         <div>
             <label>Seleccionar Alumno:</label>
             <select name="student_id" required>
                 <option value="">-- Elige un alumno --</option>
                 {% for chair, students in chairs.items() %}
-                    {% for student in students %}
-                    <option value="{{ student[0] }}">{{ student[1] }} (Cátedra: {{ chair }})</option>
-                    {% endfor %}
+                    <optgroup label="Cátedra: {{ chair }}">
+                        {% for s in students %}
+                        <option value="{{ s[0] }}">{{ s[2] }} ({{ s[1] }})</option>
+                        {% endfor %}
+                    </optgroup>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label>Título de la canción:</label>
-            <input type="text" name="title" required>
+            <label>Título de la Obra / Canción:</label>
+            <input type="text" name="title" required placeholder="Ej. El manisero">
         </div>
         <div>
-            <label>Artista / Banda:</label>
-            <input type="text" name="artist" required>
+            <label>Artista / Compositor:</label>
+            <input type="text" name="artist" placeholder="Ej. Moisés Simons">
         </div>
         <div>
-            <label>Instrumento:</label>
-            <input type="text" name="instrument" required>
+            <label>Instrumento / Formato:</label>
+            <input type="text" name="instrument" placeholder="Ej. Piano solista">
+        </div>
+        <div class="full-width">
+            <label>Instrucciones / Notas:</label>
+            <textarea name="notes" placeholder="Práctica de arpegios, atención al compás 3/4..."></textarea>
         </div>
         <div>
-            <label>Enlace web (Opcional):</label>
+            <label>Enlace de referencia (Opcional):</label>
             <input type="text" name="link" placeholder="https://...">
         </div>
         <div>
-            <label>Adjuntar Partitura (PDF o Imagen):</label>
+            <label>Adjuntar Partitura / Archivo:</label>
             <input type="file" name="score_file" accept=".pdf,.png,.jpg,.jpeg">
-        </div>
-        <div class="full-width">
-            <label>Notas o Instrucciones del Profesor:</label>
-            <textarea name="notes" rows="2" placeholder="Ej. Practicar arpegios a 80 BPM..."></textarea>
         </div>
         <button type="submit" class="save-btn">Enviar Asignación</button>
     </form>
-
+<!-- VISUALIZACIÓN Y CONTROL TOTAL DE TODAS LAS ASIGNACIONES -->
+    <h2>📌 Todas las Asignaciones Enviadas en la Academia</h2>
+    <div class="chair-section">
+        {% if assignments %}
+            <ul>
+                {% for a in assignments %}
+                <li>
+                    <div>
+                        <strong>🎼 {{ a[1] }}</strong> (<em>{{ a[3] or 'General' }}</em>)<br>
+                        <small style="color: #555;">Asignada por Prof. <strong>{{ a[6] }}</strong> a ➡️ Estudiante: <strong>{{ a[7] }}</strong> | Estado: {{ a[5] }}</small>
+                    </div>
+                    <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                        <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar esta asignación?');">🗑️ Eliminar</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: #7f8c8d; margin: 5px 0;">No hay asignaciones registradas en la academia todavía.</p>
+        {% endif %}
+    </div>
+    
     {% if is_superuser %}
     <h2>⚡ Gestión de Profesores (Superusuario)</h2>
     <div class="chair-section">
         <ul>
             {% for t in teachers %}
             <li>
-                <span>👨‍🏫 {{ t[1] }} {% if t[0] == 1 %}(Superusuario Principal)⭐{% endif %}</span>
-                {% if t[0] != 1 %}
+                <span>👨‍🏫 {{ t[2] }} (Cédula: {{ t[1] }}) {% if t[1] in SUPER_CEDULAS %}(Superusuario)⭐{% endif %}</span>
+                {% if t[1] not in SUPER_CEDULAS %}
                 <form action="/delete_teacher/{{ t[0] }}" method="POST" style="margin:0; background:none; padding:0;">
                     <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar a este profesor?');">Eliminar</button>
                 </form>
@@ -117,20 +159,27 @@
     </div>
     {% endif %}
 
-    <h2>Alumnos Organizados por Cátedras</h2>
+    <h2>🎵 Alumnos Aprobados Organizados por Cátedras</h2>
     {% if chairs %}
         {% for chair, students in chairs.items() %}
         <div class="chair-section">
-            <h3>🎵 Cátedra: {{ chair }}</h3>
+            <h3>Cátedra: {{ chair }}</h3>
             <ul>
                 {% for student in students %}
-                <li><span>👤 {{ student[1] }}</span></li>
+                <li>
+                    <span>👤 {{ student[2] }} (Cédula: {{ student[1] }})</span>
+                    {% if is_superuser %}
+                    <form action="/delete_student/{{ student[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                        <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar a este estudiante? Se borrará todo su repertorio.');">Eliminar Alumno</button>
+                    </form>
+                    {% endif %}
+                </li>
                 {% endfor %}
             </ul>
         </div>
         {% endfor %}
     {% else %}
-        <p>No hay alumnos registrados todavía.</p>
+        <p>No hay alumnos aprobados todavía.</p>
     {% endif %}
 </div>
 </body>

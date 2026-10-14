@@ -9,7 +9,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .logout-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold; }
         h1, h2 { color: #2c3e50; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
         
         .alert-success { background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; }
         .alert-error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold; }
@@ -21,19 +21,124 @@
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
         button.save-btn { grid-column: span 2; background: #27ae60; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button.save-btn:hover { background: #219653; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 30px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        th { background-color: #2c3e50; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .assignment-card { background: #fff8e1; border-left: 5px solid #f39c12; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        a.btn-resource { display: inline-block; background: #2980b9; color: white; padding: 4px 8px; text-decoration: none; border-radius: 3px; font-size: 12px; margin-right: 5px; margin-bottom: 4px; }
+        
+        /* ESTILOS DEL METRÓNOMO */
+        .metronome-card { background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .metronome-card h2 { color: #ecf0f1; margin-top: 0; font-size: 20px; }
+        .bpm-display { font-size: 42px; font-weight: bold; margin: 10px 0; color: #f1c40f; }
+        .bpm-slider { width: 80%; cursor: pointer; margin-bottom: 15px; accent-color: #f1c40f; }
+        .metronome-btn-control { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin: 0 2px; }
+        .metronome-btn-control:hover { background: #95a5a6; }
+        .start-stop-btn { background: #27ae60; color: white; border: none; padding: 10px 25px; font-size: 16px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .start-stop-btn:hover { background: #219653; }
+
+        /* CARRUSEL DE TAREAS */
+        .carousel-wrapper { position: relative; margin-bottom: 30px; }
+        .carousel-container { 
+            display: flex; 
+            gap: 15px; 
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
+            scroll-behavior: smooth; 
+            padding: 10px 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .carousel-container::-webkit-scrollbar { height: 6px; }
+        .carousel-container::-webkit-scrollbar-thumb { background: #bdc3c7; border-radius: 10px; }
+        
+        .assignment-card { 
+            flex: 0 0 280px; 
+            scroll-snap-align: start; 
+            background: #fff8e1; 
+            border-left: 5px solid #f39c12; 
+            padding: 18px; 
+            border-radius: 8px; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .assignment-card.completed { border-left-color: #2ecc71; }
+        
+        .carousel-btn { 
+            position: absolute; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            background: rgba(44, 62, 80, 0.8); 
+            color: white; 
+            border: none; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            z-index: 10; 
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .carousel-btn:hover { background: #2c3e50; }
+        .btn-left { left: -15px; }
+        .btn-right { right: -15px; }
+
+        /* GRID DE TARJETAS PARA EL REPERTORIO */
+        .repertoire-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .song-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-top: 4px solid #3498db;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .song-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+        }
+        .song-title { font-size: 17px; font-weight: bold; color: #2c3e50; margin-bottom: 4px; }
+        .song-artist { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; font-weight: 500; }
+        .song-details { font-size: 13px; color: #4a5568; margin: 3px 0; }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+        .badge-por-aprender { background: #fef3c7; color: #d97706; }
+        .badge-en-practica { background: #e0f2fe; color: #0284c7; }
+        .badge-dominado { background: #dcfce7; color: #16a34a; }
+
+        .song-footer {
+            border-top: 1px solid #edf2f7;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        a.btn-resource { display: inline-block; background: #2980b9; color: white; padding: 4px 8px; text-decoration: none; border-radius: 3px; font-size: 12px; margin-right: 4px; }
+        a.btn-resource:hover { background: #1f618d; }
 
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { padding: 15px; width: 100%; }
             form { grid-template-columns: 1fr; }
             form div.full-width { grid-column: span 1; }
-            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .carousel-btn { display: none; }
         }
     </style>
 </head>
@@ -60,28 +165,63 @@
       {% endif %}
     {% endwith %}
 
+    <!-- MÓDULO DE METRÓNOMO INTERACTIVO -->
+    <div class="metronome-card">
+        <h2>⏱️ Metrónomo Académico</h2>
+        <div class="bpm-display" id="bpmDisplay">120 <span style="font-size: 18px; color: #bdc3c7;">BPM</span></div>
+        
+        <input type="range" class="bpm-slider" id="bpmSlider" min="40" max="240" value="120" oninput="updateBpm(this.value)">
+        
+        <div>
+            <button class="metronome-btn-control" onclick="changeBpm(-5)">-5</button>
+            <button class="metronome-btn-control" onclick="changeBpm(-1)">-1</button>
+            <button class="metronome-btn-control" onclick="changeBpm(1)">+1</button>
+            <button class="metronome-btn-control" onclick="changeBpm(5)">+5</button>
+        </div>
+
+        <div>
+            <button id="startStopBtn" class="start-stop-btn" onclick="toggleMetronome()">▶️ Iniciar</button>
+        </div>
+    </div>
+
     <h2>📌 Canciones Pendientes Asignadas por el Profesor</h2>
     {% if assignments %}
-        {% for a in assignments %}
-        <div class="assignment-card">
-            <p><strong>Profesor:</strong> {{ a[6] }}</p>
-            <p><strong>Canción:</strong> {{ a[1] }} - {{ a[2] }} ({{ a[3] }})</p>
-            <p><strong>Instrucciones:</strong> {{ a[4] }}</p>
-            <p>
-                <strong>Recursos:</strong><br>
-                {% if a[7] %}
-                <a href="{{ a[7] }}" target="_blank" class="btn-resource">🔗 Enlace web</a>
-                {% endif %}
-                {% if a[8] %}
-                <a href="{{ url_for('static', filename='uploads/' + a[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
-                {% endif %}
-                {% if not a[7] and not a[8] %}
-                <span>Sin recursos adjuntos.</span>
-                {% endif %}
-            </p>
-            <p><strong>Estado:</strong> <em>{{ a[5] }}</em></p>
+    <div class="carousel-wrapper">
+        <button class="carousel-btn btn-left" onclick="scrollCarousel(-300)">❮</button>
+        
+        <div class="carousel-container" id="taskCarousel">
+            {% for a in assignments %}
+            <div class="assignment-card {% if a[5] == 'Completada' %}completed{% endif %}">
+                <div>
+                    <p style="margin-top:0; font-size: 12px; color: #7f8c8d;"><strong>Prof.:</strong> {{ a[6] }}</p>
+                    <p style="font-size: 16px; font-weight: bold; color: #2c3e50; margin: 5px 0;">🎼 {{ a[1] }}</p>
+                    {% if a[2] %}<p style="margin: 3px 0; font-size: 14px;"><strong>Artista:</strong> {{ a[2] }}</p>{% endif %}
+                    {% if a[3] %}<p style="margin: 3px 0; font-size: 14px;"><strong>Instrumento:</strong> {{ a[3] }}</p>{% endif %}
+                    {% if a[4] %}<p style="margin: 8px 0; font-size: 13px; background: #fff; padding: 6px; border-radius: 4px;">📝 {{ a[4] }}</p>{% endif %}
+                </div>
+                
+                <div style="margin-top: 15px; border-top: 1px solid #f1c40f; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        {% if a[7] %}
+                        <a href="{{ a[7] }}" target="_blank" class="btn-resource">🔗 Enlace</a>
+                        {% endif %}
+                        {% if a[8] %}
+                        <a href="{{ url_for('static', filename='uploads/' + a[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
+                        {% endif %}
+                    </div>
+                    
+                    {% if session.get('role') == 'profesor' %}
+                    <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; display:inline;">
+                        <button type="submit" onclick="return confirm('¿Eliminar esta tarea asignada?');" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:11px; cursor:pointer;">🗑️ Borrar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+
+        <button class="carousel-btn btn-right" onclick="scrollCarousel(300)">❯</button>
+    </div>
     {% else %}
         <p>No tienes tareas pendientes asignadas por ningún profesor.</p>
     {% endif %}
@@ -90,23 +230,23 @@
     <form action="/add_song" method="POST" enctype="multipart/form-data">
         <div>
             <label>Título de la canción:</label>
-            <input type="text" name="title" required>
+            <input type="text" name="title" required placeholder="Ej. Billie Jean">
         </div>
         <div>
             <label>Artista / Banda:</label>
-            <input type="text" name="artist_name" required>
+            <input type="text" name="artist_name" required placeholder="Ej. Michael Jackson">
         </div>
         <div>
             <label>Instrumento:</label>
-            <input type="text" name="instrument" required>
+            <input type="text" name="instrument" required placeholder="Ej. Bajo eléctrico">
         </div>
         <div>
             <label>Tonalidad:</label>
-            <input type="text" name="key_signature">
+            <input type="text" name="key_signature" placeholder="Ej. F#m">
         </div>
         <div>
             <label>Tempo (BPM):</label>
-            <input type="number" name="tempo">
+            <input type="number" name="tempo" placeholder="Ej. 117">
         </div>
         <div>
             <label>Estado:</label>
@@ -127,29 +267,33 @@
         <button type="submit" class="save-btn">Guardar en mi Repertorio</button>
     </form>
 
-    <h2>Mi Repertorio Actual</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Título</th>
-                <th>Artista</th>
-                <th>Instrumento</th>
-                <th>Tonalidad</th>
-                <th>Tempo</th>
-                <th>Estado</th>
-                <th>Recursos</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for song in songs %}
-            <tr>
-                <td>{{ song[1] }}</td>
-                <td>{{ song[2] }}</td>
-                <td>{{ song[3] }}</td>
-                <td>{{ song[4] }}</td>
-                <td>{{ song[5] }}</td>
-                <td><strong>{{ song[6] }}</strong></td>
-                <td>
+    <h2>🎵 Mi Repertorio Actual</h2>
+    
+    {% if songs %}
+    <div class="repertoire-grid">
+        {% for song in songs %}
+        <div class="song-card">
+            <div>
+                <div class="song-title">🎶 {{ song[1] }}</div>
+                <div class="song-artist">{{ song[2] }}</div>
+                
+                <div class="song-details"><strong>Instrumento:</strong> {{ song[3] }}</div>
+                {% if song[4] %}<div class="song-details"><strong>Tonalidad:</strong> {{ song[4] }}</div>{% endif %}
+                {% if song[5] %}<div class="song-details"><strong>Tempo:</strong> {{ song[5] }} BPM</div>{% endif %}
+                
+                <div>
+                    {% if song[6] == 'Por aprender' %}
+                        <span class="badge badge-por-aprender">⏳ Por aprender</span>
+                    {% elif song[6] == 'En práctica' %}
+                        <span class="badge badge-en-practica">🔄 En práctica</span>
+                    {% else %}
+                        <span class="badge badge-dominado">✨ Dominado</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="song-footer">
+                <div>
                     {% if song[7] %}
                     <a href="{{ song[7] }}" target="_blank" class="btn-resource">🔗 Enlace</a>
                     {% endif %}
@@ -157,17 +301,93 @@
                     <a href="{{ url_for('static', filename='uploads/' + song[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
                     {% endif %}
                     {% if not song[7] and not song[8] %}
-                    -
+                    <span style="font-size: 11px; color: #a0aec0;">Sin recursos</span>
                     {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" style="text-align: center;">No hay canciones en tu repertorio todavía.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p style="color: #718096; text-align: center; padding: 20px;">No hay canciones en tu repertorio todavía. ¡Agrega la primera arriba!</p>
+    {% endif %}
 </div>
+
+<script>
+// Lógica del Carrusel
+function scrollCarousel(distance) {
+    document.getElementById('taskCarousel').scrollBy({
+        left: distance,
+        behavior: 'smooth'
+    });
+}
+
+// Lógica del Metrónomo con Web Audio API
+let audioCtx = null;
+let isPlaying = false;
+let bpm = 120;
+let timerId = null;
+
+function updateBpm(val) {
+    bpm = parseInt(val);
+    document.getElementById('bpmDisplay').innerHTML = bpm + ' <span style="font-size: 18px; color: #bdc3c7;">BPM</span>';
+    document.getElementById('bpmSlider').value = bpm;
+    if (isPlaying) {
+        stopMetronome();
+        startMetronome();
+    }
+}
+
+function changeBpm(amount) {
+    let newBpm = Math.min(Math.max(bpm + amount, 40), 240);
+    updateBpm(newBpm);
+}
+
+function playClick() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+
+    osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // Tono de pulso claro (1000 Hz)
+    gain.gain.setValueAtTime(1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.05);
+}
+
+function startMetronome() {
+    let interval = (60 / bpm) * 1000;
+    playClick(); // Sonido inmediato al arrancar
+    timerId = setInterval(playClick, interval);
+    isPlaying = true;
+    let btn = document.getElementById('startStopBtn');
+    btn.innerHTML = '⏹️ Detener';
+    btn.style.background = '#e74c3c';
+}
+
+function stopMetronome() {
+    clearInterval(timerId);
+    isPlaying = false;
+    let btn = document.getElementById('startStopBtn');
+    btn.innerHTML = '▶️ Iniciar';
+    btn.style.background = '#27ae60';
+}
+
+function toggleMetronome() {
+    if (isPlaying) {
+        stopMetronome();
+    } else {
+        startMetronome();
+    }
+}
+</script>
+
 </body>
 </html>
