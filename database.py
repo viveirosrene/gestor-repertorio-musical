@@ -1,7 +1,9 @@
 import sqlite3
 
+DB_NAME = "music_repertoire.db"
+
 def init_db():
-    conn = sqlite3.connect("music_repertoire.db")
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
     cursor.execute("PRAGMA foreign_keys = ON;")
@@ -14,7 +16,7 @@ def init_db():
     );
     """)
 
-    # 2. Tabla de Usuarios (con cédula única, rol, estado de aprobación y recuperación)
+    # 2. Tabla de Usuarios
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +67,7 @@ def init_db():
     );
     """)
 
-    # SEGURIDAD: Asegurar que las columnas existan si la tabla ya fue creada previamente
+    # MIGRACIÓN SEGURA: Añadir columnas si la tabla ya existía sin ellas
     try:
         cursor.execute("ALTER TABLE assignments ADD COLUMN link TEXT;")
     except sqlite3.OperationalError:
@@ -78,7 +80,7 @@ def init_db():
 
     conn.commit()
     conn.close()
-    print("¡Base de datos actualizada con cédula, aprobaciones y recuperación!")
+    print("¡Base de datos inicializada y actualizada con éxito!")
 
 if __name__ == "__main__":
     init_db()
