@@ -181,7 +181,8 @@ def assign_song():
         filename = secure_filename(score_file.filename)
         score_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    crud.create_assignment(
+    # CAMBIO AQUÍ: add_assignment en lugar de create_assignment
+    crud.add_assignment(
         session["user_id"],
         student_id,
         title,
