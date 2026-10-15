@@ -124,16 +124,39 @@ def update_password(cedula, new_password):
     conn.commit()
     conn.close()
 
-def add_song(title, artist_name, instrument, key_signature, tempo, link, file_path, status, user_id):
-    artist_id = get_or_create_artist(artist_name)
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
+def add_song(
+    user_id,
+    title,
+    artist_name,
+    instrument,
+    key_signature,
+    tempo,
+    status,
+    link,
+    file_path,
+):
+  artist_id = get_or_create_artist(artist_name)
+  conn = get_connection()
+  cursor = conn.cursor()
+  cursor.execute(
+      """
         INSERT INTO songs (title, artist_id, instrument, key_signature, tempo, tab_or_score_link, file_path, status, user_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (title, artist_id, instrument, key_signature, tempo, link, file_path, status, user_id))
-    conn.commit()
-    conn.close()
+    """,
+      (
+          title,
+          artist_id,
+          instrument,
+          key_signature,
+          tempo,
+          link,
+          file_path,
+          status,
+          user_id,
+      ),
+  )
+  conn.commit()
+  conn.close()
 
 def list_songs_by_user(user_id):
     conn = get_connection()
