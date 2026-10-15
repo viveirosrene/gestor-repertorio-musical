@@ -65,6 +65,17 @@ def init_db():
     );
     """)
 
+    # SEGURIDAD: Asegurar que las columnas existan si la tabla ya fue creada previamente
+    try:
+        cursor.execute("ALTER TABLE assignments ADD COLUMN link TEXT;")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE assignments ADD COLUMN file_path TEXT;")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     conn.close()
     print("¡Base de datos actualizada con cédula, aprobaciones y recuperación!")
