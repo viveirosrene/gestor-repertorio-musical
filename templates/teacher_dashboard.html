@@ -69,9 +69,16 @@
             {% for ps in pending_students %}
             <li>
                 <span>👤 <strong>{{ ps[2] }}</strong> (Cédula: {{ ps[1] }} - Cátedra: {{ ps[3] }})</span>
-                <form action="/approve_student/{{ ps[0] }}" method="POST" style="margin:0; background:none; padding:0;">
-                    <button type="submit" class="save-btn" style="padding: 4px 10px; font-size: 12px; background: #27ae60;">Aprobar</button>
-                </form>
+                <div style="display: flex; gap: 5px;">
+                    <!-- Botón Aprobar -->
+                    <form action="/approve_student/{{ ps[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                        <button type="submit" style="padding: 5px 10px; font-size: 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Aprobar</button>
+                    </form>
+                    <!-- Botón Rechazar -->
+                    <form action="/reject_student/{{ ps[0] }}" method="POST" style="margin:0; background:none; padding:0;" onsubmit="return confirm('¿Estás seguro de rechazar y eliminar esta solicitud?');">
+                        <button type="submit" style="padding: 5px 10px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Rechazar</button>
+                    </form>
+                </div>
             </li>
             {% endfor %}
         </ul>
@@ -119,7 +126,8 @@
         </div>
         <button type="submit" class="save-btn">Enviar Asignación</button>
     </form>
-<!-- VISUALIZACIÓN Y CONTROL TOTAL DE TODAS LAS ASIGNACIONES -->
+    
+    <!-- VISUALIZACIÓN Y CONTROL TOTAL DE TODAS LAS ASIGNACIONES -->
     <h2>📌 Todas las Asignaciones Enviadas en la Academia</h2>
     <div class="chair-section">
         {% if assignments %}

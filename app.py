@@ -128,6 +128,20 @@ def register():
 
   return render_template("register.html")
 
+@app.route("/reject_student/<int:student_id>", methods=["POST"])
+def reject_student(student_id):
+  if (
+      "user_id" not in session
+      or session.get("cedula") not in crud.SUPER_CEDULAS
+      and session.get("role") != "profesor"
+  ):
+    flash("Acceso denegado.", "error")
+    return redirect(url_for("index"))
+
+  crud.delete_student(student_id)
+  flash("Solicitud del estudiante rechazada y eliminada.", "info")
+  return redirect(url_for("index"))
+
 
 @app.route("/recover", methods=["GET", "POST"])
 def recover():
