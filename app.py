@@ -16,14 +16,19 @@ import database
 app = Flask(__name__)
 app.secret_key = "clave_secreta_gestor_musica"
 
-# USAR DIRECTAMENTE EL DIRECTORIO DE TRABAJO ACTUAL
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "static", "uploads")
+# RUTA ABSOLUTA BLINDADA PARA RENDER Y LOCAL
+basedir = os.path.abspath(os.path.dirname(__file__))
+STATIC_FOLDER = os.path.join(basedir, "static")
+UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, "uploads")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# Forzar limpieza si 'uploads' existe por error como archivo plano y crear directorio seguro
 try:
+    if os.path.exists(UPLOAD_FOLDER) and not os.path.isdir(UPLOAD_FOLDER):
+        os.remove(UPLOAD_FOLDER)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-except OSError:
-    pass
+except Exception as e:
+    print(f"Error creando directorio uploads: {e}")
 
 database.init_db()
 
@@ -187,14 +192,15 @@ def add_song():
         original_filename = secure_filename(score_file.filename)
         ext = os.path.splitext(original_filename)[1]
         
-        # Generar un nombre único usando UUID para evitar conflictos en Windows
+        # Nombre único con UUID para prevenir colisiones o errores en SO
         filename = f"{uuid.uuid4()}{ext}"
         
         upload_path = app.config["UPLOAD_FOLDER"]
         try:
-            if not os.path.exists(upload_path):
-                os.makedirs(upload_path)
-        except OSError:
+            if os.path.exists(upload_path) and not os.path.isdir(upload_path):
+                os.remove(upload_path)
+            os.makedirs(upload_path, exist_ok=True)
+        except Exception:
             pass
 
         file_path = os.path.join(upload_path, filename)
@@ -234,14 +240,15 @@ def assign_song():
         original_filename = secure_filename(score_file.filename)
         ext = os.path.splitext(original_filename)[1]
         
-        # Generar un nombre único usando UUID para evitar conflictos en Windows
+        # Nombre único con UUID para prevenir colisiones o errores en SO
         filename = f"{uuid.uuid4()}{ext}"
         
         upload_path = app.config["UPLOAD_FOLDER"]
         try:
-            if not os.path.exists(upload_path):
-                os.makedirs(upload_path)
-        except OSError:
+            if os.path.exists(upload_path) and not os.path.isdir(upload_path):
+                os.remove(upload_path)
+            os.makedirs(upload_path, exist_ok=True)
+        except Exception:
             pass
 
         file_path = os.path.join(upload_path, filename)
