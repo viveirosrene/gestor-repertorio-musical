@@ -325,6 +325,10 @@ def delete_teacher(user_id):
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
 
-    @app.route("/ping")
+@app.route("/ping")
 def ping():
     return "OK", 200
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001, debug=True)
