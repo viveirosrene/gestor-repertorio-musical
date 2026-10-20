@@ -58,7 +58,16 @@ def index():
         chairs = crud.get_students_by_chair()
         teachers = crud.get_all_teachers() if is_superuser else []
         pending_students = crud.get_pending_students() if is_superuser else []
-        assignments = crud.get_all_assignments()
+        raw_assignments = crud.get_all_assignments()
+        
+        # Agrupar asignaciones por cátedra del estudiante
+        assignments_by_chair = {}
+        for a in raw_assignments:
+            chair_name = a[10] if a[10] else "Sin Cátedra"
+            if chair_name not in assignments_by_chair:
+                assignments_by_chair[chair_name] = []
+            assignments_by_chair[chair_name].append(a)
+
         return render_template(
             "teacher_dashboard.html",
             username=username,
@@ -67,9 +76,8 @@ def index():
             pending_students=pending_students,
             is_superuser=is_superuser,
             SUPER_CEDULAS=crud.SUPER_CEDULAS,
-            assignments=assignments,
+            assignments_by_chair=assignments_by_chair,
         )
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

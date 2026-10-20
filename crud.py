@@ -374,7 +374,7 @@ def get_all_assignments():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u_teacher.username, u_student.username, a.link, a.file_path
+        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u_teacher.username, u_student.username, a.link, a.file_path, u_student.chair
         FROM assignments a
         JOIN users u_teacher ON a.teacher_id = u_teacher.id
         JOIN users u_student ON a.student_id = u_student.id

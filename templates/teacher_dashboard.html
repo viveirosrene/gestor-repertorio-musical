@@ -129,24 +129,34 @@
     
     <!-- VISUALIZACIÓN Y CONTROL TOTAL DE TODAS LAS ASIGNACIONES -->
     <h2>📌 Todas las Asignaciones Enviadas en la Academia</h2>
-    <div class="chair-section">
-        {% if assignments %}
-            <ul>
-                {% for a in assignments %}
-                <li>
-                    <div>
-                        <strong>🎼 {{ a[1] }}</strong> (<em>{{ a[3] or 'General' }}</em>)<br>
-                        <small style="color: #555;">Asignada por Prof. <strong>{{ a[6] }}</strong> a ➡️ Estudiante: <strong>{{ a[7] }}</strong> | Estado: {{ a[5] }}</small>
-                    </div>
-                    <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; background:none; padding:0;">
-                        <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar esta asignación?');">🗑️ Eliminar</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
+    {% if assignments_by_chair %}
+        {% for chair_name, chair_assignments in assignments_by_chair.items() %}
+        <details class="chair-section" style="margin-bottom: 15px; cursor: pointer;">
+            <summary style="font-weight: bold; font-size: 16px; color: #2c3e50; outline: none; padding: 5px 0;">
+                🎹 Cátedra: {{ chair_name }} <span style="font-weight: normal; color: #7f8c8d; font-size: 14px;">({{ chair_assignments|length }} asignaciones)</span>
+            </summary>
+            <div style="margin-top: 10px; border-top: 1px solid #f1f1f1; padding-top: 10px;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {% for a in chair_assignments %}
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f9f9f9;">
+                        <div>
+                            <strong>🎼 {{ a[1] }}</strong> (<em>{{ a[3] or 'General' }}</em>)<br>
+                            <small style="color: #555;">Asignada por Prof. <strong>{{ a[6] }}</strong> a ➡️ Estudiante: <strong>{{ a[7] }}</strong> | Estado: {{ a[5] }}</small>
+                        </div>
+                        <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                            <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar esta asignación?');">🗑️ Eliminar</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </details>
+        {% endfor %}
+    {% else %}
+        <div class="chair-section">
             <p style="color: #7f8c8d; margin: 5px 0;">No hay asignaciones registradas en la academia todavía.</p>
-        {% endif %}
+        </div>
+    {% endif %}
     </div>
     
     {% if is_superuser %}
