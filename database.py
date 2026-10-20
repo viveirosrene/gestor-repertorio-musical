@@ -6,11 +6,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_connection():
     if DATABASE_URL:
-        # Conexión a PostgreSQL en Supabase
         conn = psycopg2.connect(DATABASE_URL)
         return conn
     else:
-        # Conexión local SQLite
         conn = sqlite3.connect("music_repertoire.db")
         conn.execute("PRAGMA foreign_keys = ON;")
         return conn
@@ -20,7 +18,7 @@ def init_db():
     cursor = conn.cursor()
 
     if DATABASE_URL:
-        # Sintaxis SQL compatible con PostgreSQL (Supabase)
+        # 1. Crear tablas si no existen en PostgreSQL (Supabase)
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS artists (
             id SERIAL PRIMARY KEY,
@@ -75,8 +73,28 @@ def init_db():
             FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
         );
         """)
+
+        # 2. Migración automática de columnas por si la tabla ya existía
+        migrations = [
+            "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS link TEXT;",
+            "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS file_path TEXT;",
+            "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pendiente';",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS artist_id INTEGER;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS instrument TEXT;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS key_signature TEXT;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS tempo INTEGER;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS tab_or_score_link TEXT;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS file_path TEXT;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Por aprender';",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS user_id INTEGER;"
+        ]
+        for mig in migrations:
+            try:
+                cursor.execute(mig)
+            except Exception:
+                conn.rollback() # Ignorar si ya existe y continuar
     else:
-        # Sintaxis original SQLite para desarrollo local
+        # Configuración SQLite local
         cursor.execute("PRAGMA foreign_keys = ON;")
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS artists (
@@ -133,7 +151,7 @@ def init_db():
     conn.commit()
     cursor.close()
     conn.close()
-    print("¡Base de datos inicializada y conectada con éxito!")
+    print("¡Base de datos inicializada, migrada y conectada de forma automática!")
 
 if __name__ == "__main__":
     init_db()

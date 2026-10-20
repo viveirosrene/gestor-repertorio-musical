@@ -86,9 +86,10 @@ def login():
                 )
                 return redirect(url_for("login"))
 
+            # --- AQUÍ ESTABA EL PEQUEÑO DETALLE DE INDENTACIÓN ---
             session["user_id"] = user["id"]
             session["cedula"] = user["cedula"]
-            session["username"] = user["username"]
+            session["username"] = user["username"]  
             session["role"] = user["role"]
 
             flash(f"¡Bienvenido, {user['username']}!", "success")
@@ -97,7 +98,6 @@ def login():
             flash("Cédula o contraseña incorrecta.", "error")
 
     return render_template("login.html")
-
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
