@@ -14,10 +14,17 @@ def get_or_create_artist(artist_name):
     conn = get_connection()
     cursor = conn.cursor()
     
-    cursor.execute(
-        "SELECT id FROM artists WHERE LOWER(name) = LOWER(%s) OR LOWER(name) = LOWER(?)", 
-        (artist_name, artist_name)
-    )
+    if database.DATABASE_URL:
+        cursor.execute(
+            "SELECT id FROM artists WHERE LOWER(name) = LOWER(%s)", 
+            (artist_name,)
+        )
+    else:
+        cursor.execute(
+            "SELECT id FROM artists WHERE LOWER(name) = LOWER(?)", 
+            (artist_name,)
+        )
+        
     row = cursor.fetchone()
     if row:
         artist_id = row[0]
@@ -197,6 +204,18 @@ def delete_teacher(teacher_id):
     cursor.close()
     conn.close()
 
+def delete_song(song_id, user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = (
+        "DELETE FROM songs WHERE id = %s AND user_id = %s"
+        if database.DATABASE_URL
+        else "DELETE FROM songs WHERE id = ? AND user_id = ?"
+    )
+    cursor.execute(query, (song_id, user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def update_password(cedula, new_password):
     conn = get_connection()
@@ -341,7 +360,6 @@ def delete_student(student_id):
     cursor.close()
     conn.close()
 
-
 def delete_assignment(assignment_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -366,3 +384,16 @@ def get_all_assignments():
     cursor.close()
     conn.close()
     return assignments
+
+def delete_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = (
+        "DELETE FROM users WHERE id = %s"
+        if database.DATABASE_URL
+        else "DELETE FROM users WHERE id = ?"
+    )
+    cursor.execute(query, (user_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()

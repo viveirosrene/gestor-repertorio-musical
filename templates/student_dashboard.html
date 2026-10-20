@@ -209,12 +209,6 @@
                         <a href="{{ url_for('static', filename='uploads/' + a[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
                         {% endif %}
                     </div>
-                    
-                    {% if session.get('role') == 'profesor' %}
-                    <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; display:inline;">
-                        <button type="submit" onclick="return confirm('¿Eliminar esta tarea asignada?');" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:11px; cursor:pointer;">🗑️ Borrar</button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -304,6 +298,11 @@
                     <span style="font-size: 11px; color: #a0aec0;">Sin recursos</span>
                     {% endif %}
                 </div>
+
+                <!-- Botón para eliminar la canción del repertorio personal -->
+                <form action="/delete_song/{{ song[0] }}" method="POST" style="margin:0; display:inline;">
+                    <button type="submit" onclick="return confirm('¿Estás seguro de eliminar esta canción de tu repertorio?');" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:11px; cursor:pointer;">🗑️ Borrar</button>
+                </form>
             </div>
         </div>
         {% endfor %}

@@ -18,7 +18,7 @@ def init_db():
     cursor = conn.cursor()
 
     if DATABASE_URL:
-        # 1. Crear tablas si no existen en PostgreSQL (Supabase)
+        # Tablas en Supabase (PostgreSQL)
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS artists (
             id SERIAL PRIMARY KEY,
@@ -74,7 +74,7 @@ def init_db():
         );
         """)
 
-        # 2. Migración automática de columnas por si la tabla ya existía
+        # Migraciones automáticas de columnas en caliente
         migrations = [
             "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS link TEXT;",
             "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS file_path TEXT;",
@@ -91,10 +91,11 @@ def init_db():
         for mig in migrations:
             try:
                 cursor.execute(mig)
+                conn.commit()
             except Exception:
-                conn.rollback() # Ignorar si ya existe y continuar
+                conn.rollback()
     else:
-        # Configuración SQLite local
+        # Tablas locales (SQLite)
         cursor.execute("PRAGMA foreign_keys = ON;")
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS artists (

@@ -267,10 +267,19 @@ def assign_song():
     flash("Tarea asignada con éxito al alumno.", "success")
     return redirect(url_for("index"))
 
+@app.route("/delete_song/<int:song_id>", methods=["POST"])
+def delete_song(song_id):
+    if "user_id" not in session:
+        flash("Acceso denegado.", "error")
+        return redirect(url_for("login"))
+
+    crud.delete_song(song_id, session["user_id"])
+    flash("Canción eliminada de tu repertorio.", "success")
+    return redirect(url_for("index"))
 
 @app.route("/delete_assignment/<int:assignment_id>", methods=["POST"])
 def delete_assignment(assignment_id):
-    if "user_id" not in session or session.get("role") != "profesor":
+    if "user_id" not in session:
         flash("Acceso denegado.", "error")
         return redirect(url_for("index"))
 
