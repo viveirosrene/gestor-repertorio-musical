@@ -206,7 +206,7 @@
                         <a href="{{ a[7] }}" target="_blank" class="btn-resource">🔗 Enlace</a>
                         {% endif %}
                         {% if a[8] %}
-                        <a href="{{ url_for('static', filename='uploads/' + a[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
+                        <a href="{% if 'http' in a[8] %}{{ a[8] }}{% else %}{{ url_for('static', filename='uploads/' + a[8]) }}{% endif %}" target="_blank" class="btn-resource">📄 Partitura</a>
                         {% endif %}
                     </div>
                 </div>
@@ -292,7 +292,7 @@
                     <a href="{{ song[7] }}" target="_blank" class="btn-resource">🔗 Enlace</a>
                     {% endif %}
                     {% if song[8] %}
-                    <a href="{{ url_for('static', filename='uploads/' + song[8]) }}" target="_blank" class="btn-resource">📄 Partitura</a>
+                    <a href="{% if 'http' in song[8] %}{{ song[8] }}{% else %}{{ url_for('static', filename='uploads/' + song[8]) }}{% endif %}" target="_blank" class="btn-resource">📄 Partitura</a>
                     {% endif %}
                     {% if not song[7] and not song[8] %}
                     <span style="font-size: 11px; color: #a0aec0;">Sin recursos</span>

@@ -1,5 +1,6 @@
 import os
 import uuid
+import requests
 from flask import (
     Flask,
     render_template,
@@ -22,6 +23,11 @@ STATIC_FOLDER = os.path.join(basedir, "static")
 UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, "uploads")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# CONFIGURACIÓN SUPABASE STORAGE
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+BUCKET_NAME = "partituras"
+
 # Forzar limpieza si 'uploads' existe por error como archivo plano y crear directorio seguro
 try:
     if os.path.exists(UPLOAD_FOLDER) and not os.path.isdir(UPLOAD_FOLDER):
@@ -31,6 +37,40 @@ except Exception as e:
     print(f"Error creando directorio uploads: {e}")
 
 database.init_db()
+
+
+def save_score_file(score_file):
+    if not score_file or score_file.filename == "":
+        return None
+
+    original_filename = secure_filename(score_file.filename)
+    ext = os.path.splitext(original_filename)[1]
+    unique_filename = f"{uuid.uuid4()}{ext}"
+
+    # 1. Subir a Supabase Storage si las variables existen en el servidor
+    if SUPABASE_URL and SUPABASE_KEY:
+        try:
+            storage_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{unique_filename}"
+            headers = {
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "apiKey": SUPABASE_KEY,
+                "Content-Type": score_file.mimetype or "application/octet-stream",
+            }
+            file_bytes = score_file.read()
+            response = requests.post(storage_url, headers=headers, data=file_bytes)
+
+            if response.status_code in (200, 201):
+                return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_NAME}/{unique_filename}"
+        except Exception as e:
+            print(f"Error subiendo a Supabase Storage: {e}")
+
+    # 2. Respaldo local si trabajas en entorno de desarrollo local sin variables
+    upload_path = app.config["UPLOAD_FOLDER"]
+    os.makedirs(upload_path, exist_ok=True)
+    score_file.seek(0)
+    file_path = os.path.join(upload_path, unique_filename)
+    score_file.save(file_path)
+    return unique_filename
 
 
 @app.route("/")
@@ -59,7 +99,7 @@ def index():
         teachers = crud.get_all_teachers() if is_superuser else []
         pending_students = crud.get_pending_students() if is_superuser else []
         raw_assignments = crud.get_all_assignments()
-        
+
         # Agrupar asignaciones por cátedra del estudiante
         assignments_by_chair = {}
         for a in raw_assignments:
@@ -79,6 +119,7 @@ def index():
             assignments_by_chair=assignments_by_chair,
         )
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -94,10 +135,9 @@ def login():
                 )
                 return redirect(url_for("login"))
 
-            # --- AQUÍ ESTABA EL PEQUEÑO DETALLE DE INDENTACIÓN ---
             session["user_id"] = user["id"]
             session["cedula"] = user["cedula"]
-            session["username"] = user["username"]  
+            session["username"] = user["username"]
             session["role"] = user["role"]
 
             flash(f"¡Bienvenido, {user['username']}!", "success")
@@ -106,6 +146,7 @@ def login():
             flash("Cédula o contraseña incorrecta.", "error")
 
     return render_template("login.html")
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -127,13 +168,9 @@ def register():
         )
         if success:
             if role == "alumno":
-                msg = (
-                    "Registro exitoso. Tu cuenta debe ser aprobada por un profesor para poder ingresar."
-                )
+                msg = "Registro exitoso. Tu cuenta debe ser aprobada por un profesor para poder ingresar."
             else:
-                msg = (
-                    "Profesor registrado exitosamente. Ya puedes iniciar sesión. (Pendiente de aprobación si no es superusuario)"
-                )
+                msg = "Profesor registrado exitosamente. Ya puedes iniciar sesión. (Pendiente de aprobación si no es superusuario)"
             flash(msg, "success")
             return redirect(url_for("login"))
         else:
@@ -166,7 +203,10 @@ def recover():
         user = crud.get_user_by_cedula(cedula)
         if user:
             crud.update_password(cedula, new_password)
-            flash("Contraseña actualizada correctamente. Ya puedes ingresar.", "success")
+            flash(
+                "Contraseña actualizada correctamente. Ya puedes ingresar.",
+                "success",
+            )
             return redirect(url_for("login"))
         else:
             flash("Cédula no encontrada en el sistema.", "error")
@@ -195,24 +235,7 @@ def add_song():
     link = request.form.get("link")
 
     score_file = request.files.get("score_file")
-    filename = None
-    if score_file and score_file.filename != "":
-        original_filename = secure_filename(score_file.filename)
-        ext = os.path.splitext(original_filename)[1]
-        
-        # Nombre único con UUID para prevenir colisiones o errores en SO
-        filename = f"{uuid.uuid4()}{ext}"
-        
-        upload_path = app.config["UPLOAD_FOLDER"]
-        try:
-            if os.path.exists(upload_path) and not os.path.isdir(upload_path):
-                os.remove(upload_path)
-            os.makedirs(upload_path, exist_ok=True)
-        except Exception:
-            pass
-
-        file_path = os.path.join(upload_path, filename)
-        score_file.save(file_path)
+    filename_or_url = save_score_file(score_file)
 
     crud.add_song(
         session["user_id"],
@@ -223,7 +246,7 @@ def add_song():
         tempo,
         status,
         link,
-        filename,
+        filename_or_url,
     )
     flash("Canción agregada a tu repertorio.", "success")
     return redirect(url_for("index"))
@@ -243,24 +266,7 @@ def assign_song():
     link = request.form.get("link")
 
     score_file = request.files.get("score_file")
-    filename = None
-    if score_file and score_file.filename != "":
-        original_filename = secure_filename(score_file.filename)
-        ext = os.path.splitext(original_filename)[1]
-        
-        # Nombre único con UUID para prevenir colisiones o errores en SO
-        filename = f"{uuid.uuid4()}{ext}"
-        
-        upload_path = app.config["UPLOAD_FOLDER"]
-        try:
-            if os.path.exists(upload_path) and not os.path.isdir(upload_path):
-                os.remove(upload_path)
-            os.makedirs(upload_path, exist_ok=True)
-        except Exception:
-            pass
-
-        file_path = os.path.join(upload_path, filename)
-        score_file.save(file_path)
+    filename_or_url = save_score_file(score_file)
 
     crud.add_assignment(
         session["user_id"],
@@ -270,10 +276,11 @@ def assign_song():
         instrument,
         notes,
         link,
-        filename,
+        filename_or_url,
     )
     flash("Tarea asignada con éxito al alumno.", "success")
     return redirect(url_for("index"))
+
 
 @app.route("/delete_song/<int:song_id>", methods=["POST"])
 def delete_song(song_id):
@@ -284,6 +291,7 @@ def delete_song(song_id):
     crud.delete_song(song_id, session["user_id"])
     flash("Canción eliminada de tu repertorio.", "success")
     return redirect(url_for("index"))
+
 
 @app.route("/delete_assignment/<int:assignment_id>", methods=["POST"])
 def delete_assignment(assignment_id):
@@ -313,10 +321,7 @@ def approve_student(student_id):
 
 @app.route("/delete_student/<int:user_id>", methods=["POST"])
 def delete_student(user_id):
-    if (
-        "user_id" not in session
-        or session.get("cedula") not in crud.SUPER_CEDULAS
-    ):
+    if "user_id" not in session or session.get("cedula") not in crud.SUPER_CEDULAS:
         flash("Acceso denegado.", "error")
         return redirect(url_for("index"))
 
@@ -327,10 +332,7 @@ def delete_student(user_id):
 
 @app.route("/delete_teacher/<int:user_id>", methods=["POST"])
 def delete_teacher(user_id):
-    if (
-        "user_id" not in session
-        or session.get("cedula") not in crud.SUPER_CEDULAS
-    ):
+    if "user_id" not in session or session.get("cedula") not in crud.SUPER_CEDULAS:
         flash("Acceso denegado.", "error")
         return redirect(url_for("index"))
 
@@ -338,9 +340,6 @@ def delete_teacher(user_id):
     flash("Profesor eliminado correctamente.", "success")
     return redirect(url_for("index"))
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
 
 @app.route("/ping")
 def ping():
