@@ -273,7 +273,8 @@ def list_songs_by_user(user_id):
     query = (
         """
         SELECT s.id, s.title, COALESCE(a.name, 'Sin Artista'), COALESCE(s.instrument, 'Sin Instrumento'), 
-               s.key_signature, s.tempo, s.status, s.tab_or_score_link, s.file_path
+               s.key_signature, s.tempo, s.status, s.tab_or_score_link, s.file_path,
+               TO_CHAR(s.created_at, 'DD/MM/YYYY HH12:MI AM')
         FROM songs s
         LEFT JOIN artists a ON s.artist_id = a.id
         WHERE s.user_id = %s
@@ -281,7 +282,8 @@ def list_songs_by_user(user_id):
         if database.DATABASE_URL
         else """
         SELECT s.id, s.title, COALESCE(a.name, 'Sin Artista'), COALESCE(s.instrument, 'Sin Instrumento'), 
-               s.key_signature, s.tempo, s.status, s.tab_or_score_link, s.file_path
+               s.key_signature, s.tempo, s.status, s.tab_or_score_link, s.file_path,
+               strftime('%d/%m/%Y %H:%M', s.created_at)
         FROM songs s
         LEFT JOIN artists a ON s.artist_id = a.id
         WHERE s.user_id = ?
@@ -323,9 +325,11 @@ def add_assignment(
 def get_student_assignments(student_id):
     conn = get_connection()
     cursor = conn.cursor()
+    # Se agregaron dos NULL para igualar el índice 11 con el panel del profesor
     query = (
         """
-        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u.username, a.link, a.file_path
+        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u.username, a.link, a.file_path,
+               NULL, NULL, TO_CHAR(a.created_at, 'DD/MM/YYYY HH12:MI AM')
         FROM assignments a
         JOIN users u ON a.teacher_id = u.id
         WHERE a.student_id = %s
@@ -333,7 +337,8 @@ def get_student_assignments(student_id):
     """
         if database.DATABASE_URL
         else """
-        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u.username, a.link, a.file_path
+        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u.username, a.link, a.file_path,
+               NULL, NULL, strftime('%d/%m/%Y %H:%M', a.created_at)
         FROM assignments a
         JOIN users u ON a.teacher_id = u.id
         WHERE a.student_id = ?
@@ -373,13 +378,26 @@ def delete_assignment(assignment_id):
 def get_all_assignments():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u_teacher.username, u_student.username, a.link, a.file_path, u_student.chair
+    query = (
+        """
+        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u_teacher.username, u_student.username, a.link, a.file_path, u_student.chair,
+               TO_CHAR(a.created_at, 'DD/MM/YYYY HH12:MI AM')
         FROM assignments a
         JOIN users u_teacher ON a.teacher_id = u_teacher.id
         JOIN users u_student ON a.student_id = u_student.id
         ORDER BY a.id DESC
-    """)
+        """
+        if database.DATABASE_URL
+        else """
+        SELECT a.id, a.title, a.artist, a.instrument, a.notes, a.status, u_teacher.username, u_student.username, a.link, a.file_path, u_student.chair,
+               strftime('%d/%m/%Y %H:%M', a.created_at)
+        FROM assignments a
+        JOIN users u_teacher ON a.teacher_id = u_teacher.id
+        JOIN users u_student ON a.student_id = u_student.id
+        ORDER BY a.id DESC
+        """
+    )
+    cursor.execute(query)
     assignments = cursor.fetchall()
     cursor.close()
     conn.close()

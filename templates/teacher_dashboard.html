@@ -30,6 +30,8 @@
         
         .delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
         .delete-btn:hover { background: #c0392b; }
+        .doc-btn { background: #2980b9; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: none; }
+        .doc-btn:hover { background: #1f618d; }
 
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -141,11 +143,19 @@
                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f9f9f9;">
                         <div>
                             <strong>🎼 {{ a[1] }}</strong> (<em>{{ a[3] or 'General' }}</em>)<br>
-                            <small style="color: #555;">Asignada por Prof. <strong>{{ a[6] }}</strong> a ➡️ Estudiante: <strong>{{ a[7] }}</strong> | Estado: {{ a[5] }}</small>
+                            <small style="color: #555;">Asignada por Prof. <strong>{{ a[6] }}</strong> a ➡️ Estudiante: <strong>{{ a[7] }}</strong> | Estado: {{ a[5] }}</small><br>
+                            <small style="color: #7f8c8d;">📅 <strong>Fecha de asignación:</strong> {{ a[11] if a|length > 11 else 'Registrada' }}</small>
                         </div>
-                        <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; background:none; padding:0;">
-                            <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar esta asignación?');">🗑️ Eliminar</button>
-                        </form>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <!-- NUEVO: Botón de Partitura para el Profesor -->
+                            {% if a[8] %}
+                            <a href="{% if 'http' in a[8] %}{{ a[8] }}{% else %}{{ url_for('static', filename='uploads/' + a[8]) }}{% endif %}" target="_blank" class="doc-btn">📄 Partitura</a>
+                            {% endif %}
+                            
+                            <form action="/delete_assignment/{{ a[0] }}" method="POST" style="margin:0; background:none; padding:0;">
+                                <button type="submit" class="delete-btn" onclick="return confirm('¿Estás seguro de eliminar esta asignación?');">🗑️ Eliminar</button>
+                            </form>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>

@@ -197,6 +197,7 @@
                     <p style="font-size: 16px; font-weight: bold; color: #2c3e50; margin: 5px 0;">🎼 {{ a[1] }}</p>
                     {% if a[2] %}<p style="margin: 3px 0; font-size: 14px;"><strong>Artista:</strong> {{ a[2] }}</p>{% endif %}
                     {% if a[3] %}<p style="margin: 3px 0; font-size: 14px;"><strong>Instrumento:</strong> {{ a[3] }}</p>{% endif %}
+                    <p style="margin: 5px 0; font-size: 12px; color: #95a5a6;">📅 <strong>Asignado:</strong> {{ a[11] if a|length > 11 else 'Fecha registrada' }}</p>
                     {% if a[4] %}<p style="margin: 8px 0; font-size: 13px; background: #fff; padding: 6px; border-radius: 4px;">📝 {{ a[4] }}</p>{% endif %}
                 </div>
                 
@@ -274,6 +275,7 @@
                 <div class="song-details"><strong>Instrumento:</strong> {{ song[3] }}</div>
                 {% if song[4] %}<div class="song-details"><strong>Tonalidad:</strong> {{ song[4] }}</div>{% endif %}
                 {% if song[5] %}<div class="song-details"><strong>Tempo:</strong> {{ song[5] }} BPM</div>{% endif %}
+                <div class="song-details" style="color: #95a5a6; font-size: 11px; margin-top: 6px;">📅 Guardado: {{ song[9] if song|length > 9 else 'Fecha registrada' }}</div>
                 
                 <div>
                     {% if song[6] == 'Por aprender' %}
@@ -387,6 +389,5 @@ function toggleMetronome() {
     }
 }
 </script>
-
 </body>
 </html>

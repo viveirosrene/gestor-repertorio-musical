@@ -52,6 +52,7 @@ def init_db():
             file_path TEXT,
             status TEXT CHECK(status IN ('Por aprender', 'En práctica', 'Dominado')) DEFAULT 'Por aprender',
             user_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE SET NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -69,6 +70,7 @@ def init_db():
             link TEXT,
             file_path TEXT,
             status TEXT DEFAULT 'Pendiente',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -79,6 +81,7 @@ def init_db():
             "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS link TEXT;",
             "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS file_path TEXT;",
             "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pendiente';",
+            "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;",
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS artist_id INTEGER;",
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS instrument TEXT;",
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS key_signature TEXT;",
@@ -86,7 +89,8 @@ def init_db():
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS tab_or_score_link TEXT;",
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS file_path TEXT;",
             "ALTER TABLE songs ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Por aprender';",
-            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS user_id INTEGER;"
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS user_id INTEGER;",
+            "ALTER TABLE songs ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"
         ]
         for mig in migrations:
             try:
@@ -128,6 +132,7 @@ def init_db():
             file_path TEXT,
             status TEXT CHECK(status IN ('Por aprender', 'En práctica', 'Dominado')) DEFAULT 'Por aprender',
             user_id INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE SET NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -144,6 +149,7 @@ def init_db():
             link TEXT,
             file_path TEXT,
             status TEXT DEFAULT 'Pendiente',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
         );

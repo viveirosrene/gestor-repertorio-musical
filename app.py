@@ -340,6 +340,21 @@ def delete_teacher(user_id):
     flash("Profesor eliminado correctamente.", "success")
     return redirect(url_for("index"))
 
+# Al guardar una nueva asignación o repertorio
+from datetime import datetime
+
+# En la ruta del profesor (/asignar):
+cursor.execute("""
+    INSERT INTO asignaciones (profesor_id, alumno_id, catedra, titulo, artista, instrumento, instrucciones, partitura_url, fecha_creacion)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", (profesor_id, alumno_id, catedra, titulo, artista, instrumento, instrucciones, partitura_url, datetime.now()))
+
+# En la ruta del alumno (/guardar_repertorio):
+cursor.execute("""
+    INSERT INTO repertorio (alumno_id, titulo, artista, instrumento, tonalidad, tempo, estado, partitura_url, fecha_creacion)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", (alumno_id, titulo, artista, instrumento, tonalidad, tempo, estado, partitura_url, datetime.now()))
+
 
 @app.route("/ping")
 def ping():
